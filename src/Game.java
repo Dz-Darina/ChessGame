@@ -8,43 +8,33 @@ public class Game {
         while (true) {
             System.out.println(whiteTurn ? "Хід білих" : "Хід чорних");
             System.out.print("Введіть хід: ");
-            int fr = sc.nextInt();
-            int fc = sc.nextInt();
-            int tr = sc.nextInt();
-            int tc = sc.nextInt();
-            char piece = board.board[fr][fc];   //беремо шашку з початкової клітинки
-            if (piece == '.') {            //якщо клітинка пустп
+            Move m = new Move(sc.nextInt(), sc.nextInt(), sc.nextInt(), sc.nextInt());
+
+            Piece p = board.pieces[m.fr][m.fc];
+            if (p == null) {            //якщо клітинка пуста
                 System.out.println("Тут немає фігури!");
                 continue;
             }
-            if (whiteTurn && Character.isLowerCase(piece)) {    //перевірка чий і хід і чия шашка
+            if (whiteTurn && p.type == 'b') {    //перевірка чий і хід і чия шашка
                 System.out.println("Це чорна фігура, ви не можете нею ходити");
                 continue;
             }
-            if (!whiteTurn && Character.isUpperCase(piece)) {
+            if (!whiteTurn && p.type == 'w') {
                 System.out.println("Це біла фігура, ви не можете нею ходити");
                 continue;
             }
-            if (Math.abs(fr - tr) == 1 && Math.abs(fc - tc) == 1) {  //рух по діагоналі на клітинку
-                board.board[tr][tc] = piece;
-                board.board[fr][fc] = '.';
-            }
-            else if (Math.abs(fr - tr) == 2 && Math.abs(fc - tc) == 2) {   //спроба удару
-                int mr = (fr + tr) / 2;         //знаходження шашки, яку хочуть перестрибнути
-                int mc = (fc + tc) / 2;
-                board.board[tr][tc] = piece;      //видалення цієї шашки
-                board.board[fr][fc] = '.';
-                board.board[mr][mc] = '.';
-            }
-            else {
-                System.out.println("Невірний хід");
+            if (!p.canMove(m.fr, m.fc, m.tr, m.tc, board)) {
+                System.out.println("Так ходити не можна");
                 continue;
             }
-            if (piece == 'w' && tr == 0) board.board[tr][tc] = 'W';    //перетворення в дамку
-            if (piece == 'b' && tr == 7) board.board[tr][tc] = 'B';
+            board.pieces[m.tr][m.tc] = p;
+            board.pieces[m.fr][m.fc] = null;
+            if (p.type == 'w' && m.tr == 0) p.type = 'W';
+            if (p.type == 'b' && m.tr == 7) p.type = 'B';
             board.printBoard();
             whiteTurn = !whiteTurn;
         }
     }
 }
+
 
