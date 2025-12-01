@@ -1,31 +1,42 @@
 package pieces;
 import board.Board;
 import board.Position;
+import moves.Move;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Checker extends Piece {
     public Checker(boolean white) {
         super(white);
     }
-    @Override            //перевірка, чи може шашка зробити хід на задану клітинку.
-    public boolean canMove(Board board, Position from, Position to) {
-        int dr = to.row - from.row;      //зміна рядка і стовпця після ходу
-        int dc = to.col - from.col;
-        if (Math.abs(dr) == 1 && Math.abs(dc) == 1) {  //хід на 1 клітинку
-            if (white && dr == -1) return true;
-            if (!white && dr == 1) return true;
-        }
-        if (Math.abs(dr) == 2 && Math.abs(dc) == 2) {    //спроба удару
-            int mr = (from.row + to.row) / 2;     //шукаємо клітинку (ту, через яку стрибаємо)
-            int mc = (from.col + to.col) / 2;     //беремо шашку, через яку перестрибуємо
-            Piece mid = board.pieces[mr][mc];
-            if (mid != null && mid.white != this.white) {   //якщо там протилежного кольору, то можна бити
-                return true;
-            }
-        }
-        return false;
-    }
     @Override
     public char getSymbol() {
-        return white ? 'w' : 'b';
+        return white ? 'w' : 'b';         //w - біла, b - чорна
+    }
+    @Override
+    public List<Move> validMoves(Board board, Position from) {
+        List<Move> moves = new ArrayList<>();
+        int forward = white ? -1 : 1;          //білі вгору, чорні вниз
+        int[] dcs = {-1, 1};                   //вліво та вправо
+        for (int dc : dcs) {                 //прості ходи (без биття)
+            Position to = new Position(from.row + forward, from.col + dc);
+            if (to.isValid() && board.getPiece(to) == null) {                        //якщо клітинка вільна
+                moves.add(new Move(from, to, false, null));
+            }
+        }
+        int[] drs = {forward, -forward};           //бити можна вперед і назад
+        for (int dr : drs) {
+            for (int dc : dcs) {
+                Position mid = new Position(from.row + dr, from.col + dc);          //де ворог
+                Position land = new Position(from.row + 2*dr, from.col + 2*dc);     //куди стати
+                if (mid.isValid() && land.isValid()) {
+                    var midPiece = board.getPiece(mid);
+                    if (midPiece != null && midPiece.white != this.white && board.getPiece(land) == null) {    //умова: є ворог на mid, land вільний
+                        moves.add(new Move(from, land, true, mid));
+                    }
+                }
+            }
+        }
+        return moves;
     }
 }
